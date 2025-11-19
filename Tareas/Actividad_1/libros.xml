@@ -1,0 +1,20 @@
+<libros>
+  <libro>
+    <titulo>Python para Todos</titulo>
+    <autor>Juan Pérez</autor>
+    <precio>29.99</precio>
+    <anio>2020</anio>
+  </libro>
+  <libro>
+    <titulo>Data Science Avanzado</titulo>
+    <autor>María López</autor>
+    <precio>45.50</precio>
+    <anio>2022</anio>
+  </libro>
+  <libro>
+    <titulo>Ingeniería de Características</titulo>
+    <autor>Pedro Ruiz</autor>
+    <precio>39.00</precio>
+    <anio>2019</anio>
+  </libro>
+</libros>
