@@ -1,1 +1,20 @@
+# OS
+.DS_Store
+Thumbs.db
 
+# Python / Node
+__pycache__/
+node_modules/
+
+# Archivos de Editor
+.vscode/
+*.swp
+
+# Logs
+logs/
+*.log
+
+# Entornos Virtuales
+venv/
+.env
+.env.*
