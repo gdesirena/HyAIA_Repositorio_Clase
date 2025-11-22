@@ -1,1 +1,48 @@
+# Archivos de Python
+*.py[cod]
+*$py.class
+*.so
+__pycache__/
+*.pyc
 
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv/
+.env
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+*-checkpoint.ipynb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Datos y modelos (opcional, descomentar si es necesario)
+# *.csv
+# *.xlsx
+# *.pkl
+# *.h5
+# *.pth
+# *.onnx
+
+# Archivos de configuración local
+.env.local
+config.local.py
+
+# Archivos de salida
+*.log
+*.out
+*.err
+
+# Carpetas de caché
+.cache/
+.pytest_cache/
+.mypy_cache/
