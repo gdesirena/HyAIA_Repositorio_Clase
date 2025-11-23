@@ -1,1 +1,2 @@
 Documento de ejemplo
+Escritura de Práctica para registrar actualizaciones: commit, pull, en mu branch
