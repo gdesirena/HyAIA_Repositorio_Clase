@@ -1,3 +1,3 @@
-# Repositorio de archivos de clase
+# Repositorio de Yesenia Luna
 
 1.- Cosas a realizar
