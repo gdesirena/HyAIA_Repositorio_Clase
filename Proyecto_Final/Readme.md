@@ -1,6 +1,6 @@
 # Proyectos Finales de Aplicación
 
-Este directorio contiene los proyectos finales desarrollados para la asignatura/práctica. Cada proyecto está implementado como un cuaderno Jupyter (.ipynb) y contiene: descripción del problema, preprocesado de datos, experimentos, evaluación y conclusiones. A continuación se incluye una descripción detallada de cada proyecto, instrucciones para ejecutar los notebooks, dependencias recomendadas y buenas prácticas.
+Este directorio contiene los proyectos finales desarrollados para la asignatura Herramientas y Aplicaciones de la IA. Las instrucciones de cada proyecto están en un cuaderno Jupyter (.ipynb) y contiene la descripción del problema. A continuación se incluye una descripción de cada proyecto, instrucciones para ejecutar los notebooks, dependencias recomendadas y buenas prácticas.
 
 ## Resumen de proyectos
 
@@ -38,7 +38,7 @@ Este directorio contiene los proyectos finales desarrollados para la asignatura/
 	- Entradas: Imágenes de dígitos (MNIST o dataset propio).
 	- Salidas: Clasificador entrenado, métricas de evaluación y ejemplos de predicción.
 
-## Instrucciones generales para ejecutar los notebooks
+## Instrucciones generales 
 
 1. Entorno recomendado
 	- Python 3.8+ (se recomienda 3.8–3.11).
@@ -109,11 +109,3 @@ Este directorio contiene los proyectos finales desarrollados para la asignatura/
 ## Créditos y contacto
 
 Si usó datasets o código de terceros, añada referencias en el notebook. Para preguntas o colaboración, contacte al mantenedor del repositorio.
-
----
-
-Si quieres, puedo:
-- Generar un `requirements.txt` sugerido basado en las dependencias más comunes aquí.
-- Añadir scripts de ejemplo para descargar los datasets más usados (MNIST, GTZAN, etc.).
-
-Indica qué prefieres y lo aplico.
