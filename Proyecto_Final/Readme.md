@@ -106,6 +106,3 @@ Este directorio contiene los proyectos finales desarrollados para la asignatura 
 - Añadir instrucciones específicas para cada notebook sobre dónde descargar datasets grandes.
 - Incluir scripts de preprocesado que automaticen la preparación de datos (`scripts/download_data.py`, `scripts/preprocess.py`).
 
-## Créditos y contacto
-
-Si usó datasets o código de terceros, añada referencias en el notebook. Para preguntas o colaboración, contacte al mantenedor del repositorio.
