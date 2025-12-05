@@ -160,14 +160,16 @@ class CapturarNumeros:
 
     def save_drawing(self):
         # Save the image
-        if not os.path.exists('Proyecto_Final/Proyecto/saved_images'):
-            os.makedirs('Proyecto_Final/Proyecto/saved_images')
+        base_path = 'saved_images'
+        if not os.path.exists(base_path):
+            os.makedirs(base_path)
 
         input_value = self.input_entry.get()
         count = 0
+
         for image_path in self.image_list:
             # Obtener el nombre del archivo sin la carpeta
-            filename = image_path.split('/')[-1]
+            filename = image_path.split('\\')[-1]
             # Extraer el número antes del '_'
             number = filename.split('_')[0]
             if number ==input_value:
@@ -178,7 +180,7 @@ class CapturarNumeros:
         next_str = f"{next_number:02d}"
 
         print(f"count{count} next ={next_number}, next_str{next_str}")
-        filename = f"Proyecto_Final/Proyecto/saved_images/{input_value}_{next_str}.png"
+        filename = f"{base_path}/{input_value}/{input_value}_{next_str}.jpeg"
 
         # Convert canvas to image using PIL
         self.save_canvas_as_image(filename)
@@ -188,6 +190,7 @@ class CapturarNumeros:
         self.image_listbox.insert(tk.END, f"Imagen {len(self.image_list)}")
         self.canvas.delete("all")
         messagebox.showinfo("Guardado", f"Imagen guardada como {filename}")
+        self.load_images()
 
     def save_canvas_as_image(self, filename):
         """Guardar canvas directamente usando ImageGrab"""
@@ -209,13 +212,24 @@ class CapturarNumeros:
             print(f"Error con ImageGrab: {e}")
     
     def load_images(self):
-        """Load existing images from saved_images directory"""
-        if os.path.exists('saved_images'):
-            files = [f for f in os.listdir('saved_images')
-                     if f.endswith(('.png', '.jpg', '.jpeg'))]
-            for i, file in enumerate(files, 1):
-                self.image_list.append(f"saved_images/{file}")
-                self.image_listbox.insert(tk.END, f"{file}")
+        """Load existing images from saved_images directory using os.walk"""
+        base_path = 'saved_images'
+        self.image_list = []
+        if os.path.exists(base_path):
+            band = True
+
+            for root, dirs, files in os.walk(base_path):
+                # El label será el nombre de la última carpeta
+                label = os.path.basename(root)
+
+                # Solo procesar carpetas con nombres de 0-9
+                if label.isdigit():
+                    for file in files:
+                        if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                            file_path = os.path.join(root, file)
+                            self.image_list.append(file_path)
+                            self.image_listbox.insert(tk.END, f"{file}")
+                                
 
     def on_image_select(self, event):
         """Handle image selection from list"""

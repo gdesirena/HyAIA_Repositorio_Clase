@@ -4,10 +4,9 @@ import cv2
 import numpy as np
 import os
 from PIL import Image, ImageTk, ImageGrab
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from datetime import datetime
+
+from ML_Predict import ML_Predict
 
 
 class ReconocimientoNumeros:
@@ -17,8 +16,8 @@ class ReconocimientoNumeros:
         self.root.geometry("900x700")
 
         self.dataset = []
-        self.model = None
-
+        self.MLPredict = ML_Predict(
+            "saved_images", "imagenesnumeros_data.npz", "reconocimiento_digitos_svm.pkl")
         self.create_widgets()
         self.create_ml_controls()
 
@@ -93,12 +92,17 @@ class ReconocimientoNumeros:
         self.dataset_tree.bind("<Double-1>", self.on_image_select)
         # Load existing images
         self.load_images()
+        self.MLPredict.load_and_process_images()
 
     def on_image_select(self, event):
         selected_item = self.dataset_tree.selection()
+
         if selected_item:
-            index = self.dataset_tree.index(selected_item[0])
-            self.display_original_image(self.dataset[index]['image_path'])
+            item = selected_item[0]
+            valores = self.dataset_tree.item(item, 'values')
+            image = valores[0]
+            path = f"saved_images/{image[0]}/{valores[0]}"
+            self.display_original_image(path)
 
     def create_ml_controls(self):
         # Frame para controles de ML
@@ -151,108 +155,41 @@ class ReconocimientoNumeros:
         except Exception as e:
             messagebox.showerror("Error", f"Error al cargar la imagen: {e}")
 
-    def preprocess_image(self, parImagePath):
-
-        try:
-            image = cv2.imread(parImagePath)
-            return self.preprocess_for_ocr(image)
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Error en el preprocesamiento: {e}")
-
-    def preprocess_for_ocr(self, image):
-        """Preprocesamiento de imagen para reconocimiento óptico de caracteres"""
-        # Convertir a escala de grises
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        # Aplicar desenfoque gaussiano para reducir ruido
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-        # Aplicar umbral adaptativo
-        thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                       cv2.THRESH_BINARY_INV, 11, 2)
-
-        # Operaciones morfológicas para limpiar la imagen
-        kernel = np.ones((2, 2), np.uint8)
-        cleaned = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-        cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_OPEN, kernel)
-
-        return cleaned
-
-    def extract_features(self, parImage):
-        """Extraer características de la imagen"""
-        # Redimensionar a tamaño estándar
-        resized = cv2.resize(parImage, (28, 28))
-
-        # Aplanar la imagen (esto es básico, se pueden extraer características más complejas)
-        features = resized.flatten()
-        # Normalizar valores entre 0 y 1
-        features = features / 255.0
-        return features
-
     def load_images(self):
-        """Load existing images from saved_images directory"""
-        if os.path.exists('Proyecto_Final/Proyecto/saved_images'):
-            files = [f for f in os.listdir('Proyecto_Final/Proyecto/saved_images')
-                     if f.endswith(('.png', '.jpg', '.jpeg'))]
+        """Load existing images from saved_images directory using os.walk"""
+        base_path = 'saved_images'
+
+        if os.path.exists(base_path):
             band = True
-            for i, file in enumerate(files, 1):
-                self.add_to_dataset(file[0], f"Proyecto_Final/Proyecto/saved_images/{file}")
-                if band:
-                    self.display_original_image(f"Proyecto_Final/Proyecto/saved_images/{file}")
-                    band = False
 
-    def add_to_dataset(self, label, parImagePath):
-        try:
+            for root, dirs, files in os.walk(base_path):
+                # El label será el nombre de la última carpeta
+                label = os.path.basename(root)
 
-            process = self.preprocess_image(parImagePath)
-            # Extraer características
-            features = self.extract_features(process)
+                # Solo procesar carpetas con nombres de 0-9
+                if label.isdigit():
+                    for file in files:
+                        if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                            file_path = os.path.join(root, file)
+                            self.dataset_tree.insert(
+                                "", "end", values=(file, label))
 
-            # Agregar al dataset
-            self.dataset.append({
-                'features': features,
-                'label': int(label),
-                'image_path': parImagePath
-            })
-
-            # Actualizar treeview
-            filename = os.path.basename(parImagePath)
-            self.dataset_tree.insert("", "end", values=(filename, label))
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al agregar al dataset: {e}")
+                            if band:
+                                self.display_original_image(file_path)
+                                band = False
 
     def train_model(self):
-        if len(self.dataset) < 10:
+        elementos = self.dataset_tree.get_children()
+        if len(elementos) < 15:
             messagebox.showwarning(
                 "Advertencia", "Se necesitan al menos 15 muestras para entrenar")
             return
 
         try:
-            # Preparar datos
-            X = np.array([item['features'] for item in self.dataset])
-            y = np.array([item['label'] for item in self.dataset])
-
-            # Dividir en entrenamiento y prueba
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=42)
-
-            # Entrenar modelo (Random Forest como ejemplo)
-            self.model = RandomForestClassifier(
-                n_estimators=100, random_state=42)
-            self.model.fit(X_train, y_train)
-
-            # Calcular precisión
-            train_accuracy = self.model.score(X_train, y_train)
-            test_accuracy = self.model.score(X_test, y_test)
-
+            accurancy, y_Pred = self.MLPredict.Entrenar_Modelo()
             self.model_info_label.config(
-                text=f"Modelo: Random Forest - Train: {train_accuracy:.2%} - Test: {test_accuracy:.2%}"
+                text=f"Modelo Entrenado"
             )
-
-            messagebox.showinfo(
-                "Éxito", f"Modelo entrenado\nPrecisión entrenamiento: {train_accuracy:.2%}\nPrecisión prueba: {test_accuracy:.2%}")
 
         except Exception as e:
             messagebox.showerror("Error", f"Error en el entrenamiento: {e}")
@@ -261,20 +198,16 @@ class ReconocimientoNumeros:
         self.canvas.delete("all")
 
     def predict_image(self):
-        if self.model is None:
+        if self.MLPredict.Model is None:
             messagebox.showwarning("Advertencia", "Primero entrena un modelo")
             return
 
         try:
             image = self.save_drawing()
-            process = self.preprocess_image(image)
-            features = self.extract_features(process)
-            # Predecir
-            prediction = self.model.predict([features])[0]
-            probability = np.max(self.model.predict_proba([features]))
-
+            predict = self.MLPredict.Predecir_Digito(image)
             messagebox.showinfo("Predicción",
-                                f"Número reconocido: {prediction}\nConfianza: {probability:.2%}")
+                                f"Número reconocido: {predict}")
+            os.remove(image)
 
         except Exception as e:
             messagebox.showerror("Error", f"Error en la predicción: {e}")
@@ -318,11 +251,11 @@ class ReconocimientoNumeros:
 
     def save_drawing(self):
         # Save the image
-        if not os.path.exists('Proyecto_Final/Proyecto/predict_images'):
-            os.makedirs('Proyecto_Final/Proyecto/predict_images')
+        if not os.path.exists('predict_images'):
+            os.makedirs('predict_images')
         fecha_hora = datetime.now().strftime("%Y%m%d%H%M%S")
 
-        filename = f"Proyecto_Final/Proyecto/predict_images/predict_{fecha_hora}.png"
+        filename = f"predict_images/predict_{fecha_hora}.png"
 
         # Convert canvas to image using PIL
         self.save_canvas_as_image(filename)
