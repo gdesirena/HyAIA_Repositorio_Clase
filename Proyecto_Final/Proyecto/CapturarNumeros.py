@@ -134,7 +134,6 @@ class CapturarNumeros:
         # Load existing images
         self.load_images()
 
-
     def start_draw(self, event):
         self.drawing = True
         self.last_x = event.x
@@ -161,8 +160,8 @@ class CapturarNumeros:
 
     def save_drawing(self):
         # Save the image
-        if not os.path.exists('saved_images'):
-            os.makedirs('saved_images')
+        if not os.path.exists('Proyecto_Final/Proyecto/saved_images'):
+            os.makedirs('Proyecto_Final/Proyecto/saved_images')
 
         input_value = self.input_entry.get()
         count = 0
@@ -179,7 +178,7 @@ class CapturarNumeros:
         next_str = f"{next_number:02d}"
 
         print(f"count{count} next ={next_number}, next_str{next_str}")
-        filename = f"saved_images/{input_value}_{next_str}.png"
+        filename = f"Proyecto_Final/Proyecto/saved_images/{input_value}_{next_str}.png"
 
         # Convert canvas to image using PIL
         self.save_canvas_as_image(filename)
@@ -208,7 +207,6 @@ class CapturarNumeros:
 
         except Exception as e:
             print(f"Error con ImageGrab: {e}")
-
     
     def load_images(self):
         """Load existing images from saved_images directory"""

@@ -192,14 +192,14 @@ class ReconocimientoNumeros:
 
     def load_images(self):
         """Load existing images from saved_images directory"""
-        if os.path.exists('saved_images'):
-            files = [f for f in os.listdir('saved_images')
+        if os.path.exists('Proyecto_Final/Proyecto/saved_images'):
+            files = [f for f in os.listdir('Proyecto_Final/Proyecto/saved_images')
                      if f.endswith(('.png', '.jpg', '.jpeg'))]
             band = True
             for i, file in enumerate(files, 1):
-                self.add_to_dataset(file[0], f"saved_images/{file}")
+                self.add_to_dataset(file[0], f"Proyecto_Final/Proyecto/saved_images/{file}")
                 if band:
-                    self.display_original_image(f"saved_images/{file}")
+                    self.display_original_image(f"Proyecto_Final/Proyecto/saved_images/{file}")
                     band = False
 
     def add_to_dataset(self, label, parImagePath):
@@ -318,11 +318,11 @@ class ReconocimientoNumeros:
 
     def save_drawing(self):
         # Save the image
-        if not os.path.exists('predict_images'):
-            os.makedirs('predict_images')
+        if not os.path.exists('Proyecto_Final/Proyecto/predict_images'):
+            os.makedirs('Proyecto_Final/Proyecto/predict_images')
         fecha_hora = datetime.now().strftime("%Y%m%d%H%M%S")
 
-        filename = f"predict_images/predict_{fecha_hora}.png"
+        filename = f"Proyecto_Final/Proyecto/predict_images/predict_{fecha_hora}.png"
 
         # Convert canvas to image using PIL
         self.save_canvas_as_image(filename)
