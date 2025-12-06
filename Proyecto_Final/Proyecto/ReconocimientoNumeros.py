@@ -7,6 +7,7 @@ from PIL import Image, ImageTk, ImageGrab
 from datetime import datetime
 
 from ML_Predict import ML_Predict
+from TFMnist import TFMnist
 
 
 class ReconocimientoNumeros:
@@ -18,6 +19,7 @@ class ReconocimientoNumeros:
         self.dataset = []
         self.MLPredict = ML_Predict(
             "saved_images", "imagenesnumeros_data.npz", "reconocimiento_digitos_svm.pkl")
+        self.TFMnist = TFMnist()
         self.create_widgets()
         self.create_ml_controls()
 
@@ -93,6 +95,7 @@ class ReconocimientoNumeros:
         # Load existing images
         self.load_images()
         self.MLPredict.load_and_process_images()
+        self.TFMnist.loadImagesTF()
 
     def on_image_select(self, event):
         selected_item = self.dataset_tree.selection()
@@ -122,9 +125,13 @@ class ReconocimientoNumeros:
         train_button.pack(side=tk.LEFT, padx=5)
 
         # Botón para predecir
-        predict_button = tk.Button(ml_controls_frame, text="Predecir",
+        predict_button = tk.Button(ml_controls_frame, text="Predecir SVC",
                                    command=self.predict_image, bg="lightyellow", width=15)
         predict_button.pack(side=tk.LEFT, padx=5)
+
+        predict_button2 = tk.Button(ml_controls_frame, text="Pred Convolucional",
+                                    command=self.predict_imageTF, bg="lightyellow", width=15)
+        predict_button2.pack(side=tk.LEFT, padx=5)
 
         # Área de información del modelo
         self.model_info_label = tk.Label(ml_frame, text="Modelo: No entrenado",
@@ -198,15 +205,27 @@ class ReconocimientoNumeros:
         self.canvas.delete("all")
 
     def predict_image(self):
-        if self.MLPredict.Model is None:
+        if self.MLPredict.SVC_Model is None:
             messagebox.showwarning("Advertencia", "Primero entrena un modelo")
             return
 
         try:
             image = self.save_drawing()
-            predict = self.MLPredict.Predecir_Digito(image)
+            predict, confianza = self.MLPredict.Predecir_Digito(image)
             messagebox.showinfo("Predicción",
-                                f"Número reconocido: {predict}")
+                                f"Número reconocido: {predict}, Confianza : %{confianza}")
+            os.remove(image)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error en la predicción: {e}")
+
+    def predict_imageTF(self):
+
+        try:
+            image = self.save_drawing()
+            predict, confianza = self.TFMnist.Predecir_Digito(image)
+            messagebox.showinfo("Predicción",
+                                f"Número reconocido: {predict}, Confianza: %{confianza}")
             os.remove(image)
 
         except Exception as e:

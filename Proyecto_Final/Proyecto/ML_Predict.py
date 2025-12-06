@@ -15,7 +15,7 @@ class ML_Predict:
         self.imageOutputFile = parImageOutputFile
         self.ModelPath = parModelPath
         self.IMG_SIZE = 28
-        self.Model = None
+        self.SVC_Model = None
 
     def load_and_process_images(self):
         # Se almacenarán las características (Todos los píxeles de cada dígito)
@@ -81,6 +81,8 @@ class ML_Predict:
             f"Archivo de datos guardado exitosamente en {self.imageOutputFile}")
 
     def Entrenar_Modelo(self):
+        if self.SVC_Model != None:
+            return
         print("Iniciando carga y entrenamiento del modelo...")
 
         if not os.path.exists(self.imageOutputFile):
@@ -108,7 +110,7 @@ class ML_Predict:
         print("Entrenando modelo SVM. Favor de esperar...")
 
         # Utilizamos un kernel RBF para clasificación de imágenes.
-        model = SVC(kernel='rbf', gamma='scale', C=10)
+        model = SVC(kernel='rbf', gamma='scale', C=10, probability=True)
         model.fit(X_train, y_train)
 
         print("Entrenamiento completado.")
@@ -125,7 +127,7 @@ class ML_Predict:
 
         # Guardamos el modelo entrenado
         joblib.dump(model,  self.ModelPath)
-        self.Model = model
+        self.SVC_Model = model
         print(f"El modelo fue guardado exitosamente en '{ self.ModelPath}'")
         return accuracy, y_pred
 
@@ -172,14 +174,14 @@ class ML_Predict:
 
             # Realizar la predicción
             prediction = model.predict(features)
-
-            # Mostrar el resultado
+            y_prob = model.predict_proba(features)
             predicted_digit = prediction[0]
-            print("\n" + "="*36)
-            print(f"El modelo predice que el dígito es: {predicted_digit}")
-            print("="*36)
 
-            return predicted_digit
+            digito = np.argmax(y_prob[0])
+            confianza = y_prob[0][digito]
+            porcentaje_confianza = confianza * 100
+
+            return predicted_digit, porcentaje_confianza
 
         except FileNotFoundError as e:
             print(e)
