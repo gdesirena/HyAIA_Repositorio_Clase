@@ -1,0 +1,21 @@
+Pasos para ejecutar el proyecto
+
+1) Extraer el dataset de géneros musicales en la siguiente ruta:
+HyAIA_Repositorio_Clase\Uriel_Juarez\Proyecto
+(o en el directorio donde se esté ejecutando el proyecto).
+
+2) Abrir el proyecto en Visual Studio Code y posicionarse en la carpeta raíz del proyecto.
+
+3) Crear el entorno virtual ejecutando el siguiente comando en la terminal:
+python -m venv venv
+
+4) Activar el entorno virtual:
+
+En Windows:
+venv\Scripts\activate
+
+
+5) Instalar las dependencias necesarias del proyecto:
+pip install numpy pandas librosa matplotlib scikit-learn tensorflow
+
+6) Ejecutar el notebook o scripts principales para generar el dataset, entrenar el modelo y validar los resultados.
