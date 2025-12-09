@@ -281,23 +281,38 @@ class ReconocimientoNumeros:
         return filename
 
     def save_canvas_as_image(self, filename):
-        """Guardar canvas directamente usando ImageGrab"""
+        """Guardar canvas con soporte para múltiples monitores"""
         try:
-            # Obtener las coordenadas del canvas en pantalla
+            # Obtener coordenadas relativas a la ventana principal
             x = self.canvas.winfo_rootx()
             y = self.canvas.winfo_rooty()
             x1 = x + self.canvas.winfo_width()
             y1 = y + self.canvas.winfo_height()
 
-            # Capturar la región de la pantalla
-            img = ImageGrab.grab(bbox=(x, y, x1, y1))
-            img.save(filename, 'PNG')
+            # Asegurar que el canvas esté visible antes de capturar
+            self.canvas.update_idletasks()
 
+            # Intentar capturar usando all_screens si está disponible (PIL más reciente)
+            try:
+                # Para PIL >= 9.0.0
+                img = ImageGrab.grab(bbox=(x, y, x1, y1), all_screens=True)
+            except:
+                # Para versiones anteriores
+                img = ImageGrab.grab(bbox=(x, y, x1, y1))
+
+            # Verificar si la imagen está vacía (negra)
+            if img.getextrema() == ((0, 0), (0, 0), (0, 0)):
+                raise Exception(
+                    "Captura vacía - probablemente fuera del monitor principal")
+
+            img.save(filename, 'PNG')
             print(f"Imagen guardada: {filename}")
             return True
 
         except Exception as e:
             print(f"Error con ImageGrab: {e}")
+            # Intentar método alternativo
+            return self.save_canvas_as_image_alt(filename)
 
 
 if __name__ == "__main__":
