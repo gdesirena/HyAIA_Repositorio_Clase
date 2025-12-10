@@ -5,6 +5,10 @@ import cv2
 from tensorflow.keras.datasets import mnist
 import tensorflow as tf
 from tensorflow import keras
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+import json
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow info messages
@@ -13,10 +17,15 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow info messages
 class TFMnist:
     def __init__(self):
         self.Convolutional_Model = None
+        self.history_data = None
+        self.history_path = None
+        self.test_data_path = None
+        self.X_test = None
+        self.y_test = None
         self.modelo_path = 'modelo_mnist.h5'
         self.cargar_modelo_si_existe()
-        self.IMG_SIZE = 28
-
+        self.IMG_SIZE = 28      
+        
     def normalize_images(self, images):
         images = images.astype('float32')
         images /= 255
@@ -24,9 +33,10 @@ class TFMnist:
         return images
 
     def loadImagesTF(self):
+
         if self.Convolutional_Model != None:
             return
-
+        
         (X_train, y_train), (X_test, y_test) = mnist.load_data()
         X_train = self.normalize_images(X_train)
         X_test = self.normalize_images(X_test)
@@ -60,7 +70,8 @@ class TFMnist:
         model.compile(loss='categorical_crossentropy',
                       optimizer='Adadelta', metrics=['accuracy'])
 
-        model.fit(X_train, y_train,
+        # CAPTURA EL HISTORIAL DE ENTRENAMIENTO
+        history = model.fit(X_train, y_train,
                   batch_size=32,
                   epochs=15,
                   verbose=1,
@@ -68,6 +79,28 @@ class TFMnist:
         score = model.evaluate(X_test, y_test, verbose=1)
         self.Convolutional_Model = model
         self.guardar_modelo_h5()
+
+        self.history_path = 'modelo_mnist_history.json'
+        # Guardar historial del modelo como JSON
+        try:
+            with open(self.history_path, 'w') as f:
+                json.dump(history.history, f)
+            print(f"✅ Historial de entrenamiento guardado en: {self.history_path}")
+        except Exception as e:
+            print(f"❌ Error al guardar el historial: {e}")
+
+        # Almacena el historial y los datos de prueba
+        self.X_test = X_test
+        self.y_test = y_test
+        self.history = history
+
+        # Guardar los datos de prueba para graficarlos desde pantalla
+        self.test_data_path = 'mnist_test_data.npz'
+        try:
+            np.savez(self.test_data_path, X_test=X_test, y_test=y_test)
+            print(f"✅ Datos de prueba guardados en: {self.test_data_path}")
+        except Exception as e:
+            print(f"❌ Error al guardar los datos de prueba: {e}")
 
     def guardar_modelo_h5(self):
         """Guarda el modelo completo en formato .h5"""
@@ -85,6 +118,8 @@ class TFMnist:
         """
         # Usar pathlib para manejo robusto de rutas
         modelo_file = Path(self.modelo_path)
+        self.history_path = 'modelo_mnist_history.json'
+        self.test_data_path = 'mnist_test_data.npz'
 
         if modelo_file.exists():
             print(f"✅ Encontrado archivo: {self.modelo_path}")
@@ -96,6 +131,36 @@ class TFMnist:
                 print("🎯 Modelo cargado exitosamente!")
                 print(f"📊 Nombre del modelo: {self.Convolutional_Model.name}")
 
+                # ⚡ Cargar el Historial ⚡
+                history_file = Path(self.history_path)
+                if history_file.exists():
+                    with open(self.history_path, 'r') as f:
+                        # Se carga como un diccionario y se asigna al atributo
+                        self.history_data = json.load(f)
+                    print(f"✅ Historial cargado desde: {self.history_path}")
+
+                else:
+                    self.history_data = None
+                    print("⚠️ Archivo de historial no encontrado. No se podrán mostrar las gráficas de entrenamiento.")
+
+                # ⚡ Cargar los datos de prueba ⚡
+                test_data_file = Path(self.test_data_path)
+                if test_data_file.exists():
+                    try:
+                        # Usamos np.load para cargar el archivo .npz
+                        data = np.load(self.test_data_path)
+                        self.X_test = data['X_test']
+                        self.y_test = data['y_test']
+                        print(f"✅ Datos de prueba cargados ({self.X_test.shape[0]} muestras).")
+                    except Exception as e:
+                        self.X_test = None
+                        self.y_test = None
+                        print(f"❌ Error al cargar los datos de prueba: {e}")
+                else:
+                    self.X_test = None
+                    self.y_test = None
+                    print("⚠️ Archivo de datos de prueba no encontrado.")
+
                 # Opcional: mostrar arquitectura
                 self.mostrar_info_modelo()
 
@@ -103,9 +168,11 @@ class TFMnist:
 
             except Exception as e:
                 self.Convolutional_Model = None
+                #self.history_data = None
                 print(f"⚡ Error al cargar modelo {e}")
         else:
             self.Convolutional_Model = None
+            #self.history_data = None
             print("⚡ Modelo no encontrado")
 
     def mostrar_info_modelo(self):
@@ -168,6 +235,71 @@ class TFMnist:
             f"✅ Rango de valores: [{img_procesada.min():.3f}, {img_procesada.max():.3f}]")
 
         return img_procesada
+
+    def graficar_asertividad(self):
+        """
+        Grafica la precisión (Accuracy) y la pérdida (Loss) durante el entrenamiento.
+        """
+        if not hasattr(self, 'history_data') or self.history_data is None:
+            print("❌ El modelo debe ser entrenado primero para tener el historial.")
+            return
+
+        hist = self.history_data
+
+        # Figura para Precisión y Pérdida
+        plt.figure(figsize=(14, 5))
+
+        # Subplot 1: Precisión
+        plt.subplot(1, 2, 1)
+        plt.plot(hist['accuracy'], label='Precisión Entrenamiento')
+        plt.plot(hist['val_accuracy'], label='Precisión Validación')
+        plt.title('Precisión del Modelo')
+        plt.ylabel('Precisión')
+        plt.xlabel('Epoch')
+        plt.legend(loc='lower right')
+        plt.grid(True)
+
+        # Subplot 2: Pérdida
+        plt.subplot(1, 2, 2)
+        plt.plot(hist['loss'], label='Pérdida Entrenamiento')
+        plt.plot(hist['val_loss'], label='Pérdida Validación')
+        plt.title('Pérdida del Modelo')
+        plt.ylabel('Pérdida')
+        plt.xlabel('Epoch')
+        plt.legend(loc='upper right')
+        plt.grid(True)
+
+        plt.show()
+
+    def graficar_confiabilidad(self):
+        """
+        Genera la Matriz de Confusión para visualizar la confiabilidad por clase.
+        """
+        if self.Convolutional_Model is None or self.X_test is None or self.y_test is None:
+            print("❌ El modelo, X_test o y_test no están disponibles. Se requiere cargar el modelo y los datos.")
+            return
+
+        print("Calculando predicciones en datos de prueba...")
+        # Obtener las probabilidades de predicción para las imágenes de prueba
+        y_pred_probs = self.Convolutional_Model.predict(self.X_test, verbose=0)
+
+        # Convertir probabilidades a etiquetas de clase (el índice con la mayor probabilidad)
+        y_pred_classes = np.argmax(y_pred_probs, axis=1)
+
+        # Convertir las etiquetas de prueba one-hot a etiquetas de clase simples
+        y_true_classes = np.argmax(self.y_test, axis=1)
+
+        # Calcular la Matriz de Confusión
+        cm = confusion_matrix(y_true_classes, y_pred_classes)
+
+        # Graficar la Matriz de Confusión
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False,
+                    xticklabels=range(10), yticklabels=range(10))
+        plt.xlabel('Predicción')
+        plt.ylabel('Valor Verdadero')
+        plt.title('Matriz de Confusión (Confiabilidad por Clase)')
+        plt.show()
 
     def Predecir_Digito(self,  parImagePath):
         try:
