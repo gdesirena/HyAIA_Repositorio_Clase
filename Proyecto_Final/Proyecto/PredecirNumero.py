@@ -4,7 +4,7 @@ import joblib
 import os
 
 # --- PREDICCION DE DIGITOS USANDO EL MODELO ENTRENADO ---
-MODEL_FILE = 'Proyecto_Final/Proyecto/reconocimiento_digitos_svm.pkl'
+MODEL_FILE = 'reconocimiento_digitos_svm.pkl'
 IMG_SIZE = 28 # Usaremos este tamaño para que coincida con el entrenamiento
 
 # Función para procesar la imagen a predecir usando los mismos criterios que en el modelo

@@ -6,13 +6,13 @@ from tqdm import tqdm # Lo uso para mostrar avance en la carga de imagenes
 # --- CARGA DE IMAGENES DESDE LOS FOLDERS ---
 # Folder donde se encuentran las imagenes de (0 a 9)
 
-DATA_DIR = 'Proyecto_Final/Proyecto/saved_images'
+DATA_DIR = 'saved_images'
 
 # Tamaño para redimensionar las imágenes y sean equitativas
 IMG_SIZE = 28
 
 # Ruta donde guardamos el dataset procesado de NumPy
-OUTPUT_FILE = 'Proyecto_Final/Proyecto/imagenesnumeros_data.npz'
+OUTPUT_FILE = 'imagenesnumeros_data.npz'
 
 #Función para realizar la carga de las imagenes y crear el arreglo con features (X) y etiquetas (y)
 def load_and_process_images():

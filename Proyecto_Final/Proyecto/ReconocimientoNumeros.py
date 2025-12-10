@@ -95,7 +95,9 @@ class ReconocimientoNumeros:
         # Load existing images
         self.load_images()
         self.MLPredict.load_and_process_images()
+        print('Inicia carga de imagenes en LoadImagesTF')
         self.TFMnist.loadImagesTF()
+        print('Termina carga de imagenes en LoadImagesTF')
 
     def on_image_select(self, event):
         selected_item = self.dataset_tree.selection()
@@ -132,6 +134,14 @@ class ReconocimientoNumeros:
         predict_button2 = tk.Button(ml_controls_frame, text="Pred Convolucional",
                                     command=self.predict_imageTF, bg="lightyellow", width=15)
         predict_button2.pack(side=tk.LEFT, padx=5)
+
+        predict_button3 = tk.Button(ml_controls_frame, text="Ver Asertividad",
+                                    command=self.graficar_asertividad, bg="lightblue", width=15)
+        predict_button3.pack(side=tk.LEFT, padx=5)
+
+        predict_button4 = tk.Button(ml_controls_frame, text="Ver Confiabilidad",
+                                    command=self.graficar_confiabilidad, bg="lightblue", width=15)
+        predict_button4.pack(side=tk.LEFT, padx=5)
 
         # Área de información del modelo
         self.model_info_label = tk.Label(ml_frame, text="Modelo: No entrenado",
@@ -223,6 +233,7 @@ class ReconocimientoNumeros:
 
         try:
             image = self.save_drawing()
+            
             predict, confianza = self.TFMnist.Predecir_Digito(image)
             messagebox.showinfo("Predicción",
                                 f"Número reconocido: {predict}, Confianza: %{confianza}")
@@ -230,6 +241,28 @@ class ReconocimientoNumeros:
 
         except Exception as e:
             messagebox.showerror("Error", f"Error en la predicción: {e}")
+
+    def graficar_asertividad(self):
+
+        try:
+            # Generar las gráficas de evaluación
+            if hasattr(self.TFMnist, 'history_data'):
+                print("\n--- Gráficas de Asertividad (Precisión/Pérdida) ---")
+                self.TFMnist.graficar_asertividad()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al generar grafica de asertividad: {e}")
+
+    def graficar_confiabilidad(self):
+
+        try:
+            # Generar las gráficas de confiabilidad
+            if hasattr(self.TFMnist, 'X_test'):
+                print("\n--- Gráfica de Confiabilidad (Matriz de Confusión) ---")
+                self.TFMnist.graficar_confiabilidad()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al generar grafica de confiabilidad: {e}")
 
     def resize_image_for_display(self, image, max_size):
         """Redimensionar imagen para mostrar en la interfaz"""
@@ -274,30 +307,47 @@ class ReconocimientoNumeros:
             os.makedirs('predict_images')
         fecha_hora = datetime.now().strftime("%Y%m%d%H%M%S")
 
-        filename = f"predict_images/predict_{fecha_hora}.png"
+        #filename = f"predict_images/predict_{fecha_hora}.png"
+        filename = f"predict_images/predict_{fecha_hora}.jpeg"
 
         # Convert canvas to image using PIL
         self.save_canvas_as_image(filename)
         return filename
 
     def save_canvas_as_image(self, filename):
-        """Guardar canvas directamente usando ImageGrab"""
+        """Guardar canvas con soporte para múltiples monitores"""
         try:
-            # Obtener las coordenadas del canvas en pantalla
+            # Obtener coordenadas relativas a la ventana principal
             x = self.canvas.winfo_rootx()
             y = self.canvas.winfo_rooty()
             x1 = x + self.canvas.winfo_width()
             y1 = y + self.canvas.winfo_height()
 
-            # Capturar la región de la pantalla
-            img = ImageGrab.grab(bbox=(x, y, x1, y1))
-            img.save(filename, 'PNG')
+            # Asegurar que el canvas esté visible antes de capturar
+            self.canvas.update_idletasks()
 
+            # Intentar capturar usando all_screens si está disponible (PIL más reciente)
+            try:
+                # Para PIL >= 9.0.0
+                img = ImageGrab.grab(bbox=(x, y, x1, y1), all_screens=True)
+            except:
+                # Para versiones anteriores
+                img = ImageGrab.grab(bbox=(x, y, x1, y1))
+
+            # Verificar si la imagen está vacía (negra)
+            if img.getextrema() == ((0, 0), (0, 0), (0, 0)):
+                raise Exception(
+                    "Captura vacía - probablemente fuera del monitor principal")
+
+            img.save(filename)
+            #img.save(filename, 'PNG')
             print(f"Imagen guardada: {filename}")
             return True
 
         except Exception as e:
             print(f"Error con ImageGrab: {e}")
+            # Intentar método alternativo
+            return self.save_canvas_as_image_alt(filename)
 
 
 if __name__ == "__main__":

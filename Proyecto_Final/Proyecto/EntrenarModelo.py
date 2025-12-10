@@ -7,8 +7,8 @@ import joblib
 # --- ENTRENAMIENTO DEL MODELO ---
 
 # Definimos las rutas del archivo de datos y el archivo del modelo ya entrenado.
-INPUT_FILE = 'Proyecto_Final/Proyecto/imagenesnumeros_data.npz'  # Archivo de datos resultado de las imagenes
-MODEL_FILE = 'Proyecto_Final/Proyecto/reconocimiento_digitos_svm.pkl' # Archivo que tendrá el modelo entrenado.
+INPUT_FILE = 'imagenesnumeros_data.npz'  # Archivo de datos resultado de las imagenes
+MODEL_FILE = 'reconocimiento_digitos_svm.pkl' # Archivo que tendrá el modelo entrenado.
 
 # Función para entrenar el model usando SVM (Support Vector Machine)
 def Entrenar_Modelo():

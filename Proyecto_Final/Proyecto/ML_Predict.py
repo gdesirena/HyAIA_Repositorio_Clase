@@ -154,7 +154,7 @@ class ML_Predict:
         return features.reshape(1, -1)
 
     def Predecir_Digito(self,  parImagePath):
-        print("\ln--- Reconocedor de Dígitos ---")
+        print("\n--- Reconocedor de Dígitos ---")
 
         if not os.path.exists(self.ModelPath):
             print(
