@@ -1,2 +1,0 @@
-
-https://qu4nt.github.io/sklearn-doc-es/auto_examples/classification/plot_digits_classification.html#sphx-glr-download-auto-examples-classification-plot-digits-classification-py
