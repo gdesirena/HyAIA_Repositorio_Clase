@@ -1,1 +1,0 @@
-#Repo de la clade de herramientas y aplicaciones de IA.
